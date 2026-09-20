@@ -1,0 +1,39 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <model name="navis_vessel">
+    <static>false</static>
+
+    <link name="base_link">
+
+      <!-- VISUAL -->
+      <visual name="visual">
+        <geometry>
+          <mesh>
+            <uri>model://navis_vessel/meshes/navis_vessel.stl</uri>
+            <scale>1 1 1</scale>
+          </mesh>
+        </geometry>
+      </visual>
+
+      <!-- COLLISION -->
+      <collision name="collision">
+        <geometry>
+          <mesh>
+            <uri>model://navis_vessel/meshes/navis_vessel.stl</uri>
+          </mesh>
+        </geometry>
+      </collision>
+
+      <!-- PHYSICS -->
+      <inertial>
+        <mass>100.0</mass>
+        <inertia>
+          <ixx>10</ixx>
+          <iyy>10</iyy>
+          <izz>10</izz>
+        </inertia>
+      </inertial>
+
+    </link>
+  </model>
+</sdf>

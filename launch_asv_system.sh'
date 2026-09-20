@@ -1,0 +1,146 @@
+
+
+#!/bin/bash
+
+# =====================================================
+# VRX ASV COMPLETE STARTUP
+# =====================================================
+
+cd ~/vrx_ws
+
+# Kill old processes
+pkill -9 gz
+pkill -9 ruby
+pkill -9 ign
+
+pkill -f asv_gz_relay
+pkill -f joy_node
+pkill -f joystick_asv_control
+pkill -f gps_publisher
+pkill -f imu_rpy_publisher
+pkill -f path_publisher
+pkill -f gazebo_path_trail
+
+sleep 2
+
+# =====================================================
+# Gazebo
+# =====================================================
+
+gnome-terminal -- bash -c "
+cd ~/vrx_ws
+source /opt/ros/humble/setup.bash
+source ~/vrx_ws/install/setup.bash
+export GZ_GUI_PLUGIN_PATH=/home/user/vrx_ws/install/gz_waypoint_clicker/lib:$GZ_GUI_PLUGIN_PATH
+gz sim -v 4 sydney_regatta.sdf
+export GZ_SIM_SYSTEM_PLUGIN_PATH=/home/user/vrx_ws/install/asv_dvl_plugin/lib:$GZ_SIM_SYSTEM_PLUGIN_PATH
+exec bash
+"
+
+sleep 10
+
+# =====================================================
+# Spawn Boat
+# =====================================================
+
+gnome-terminal -- bash -c "
+cd ~/vrx_ws
+source /opt/ros/humble/setup.bash
+source ~/vrx_ws/install/setup.bash
+gz service -s /world/sydney_regatta/create \
+--reqtype gz.msgs.EntityFactory \
+--reptype gz.msgs.Boolean \
+--timeout 10000 \
+--req 'sdf_filename:\"/home/user/vrx_ws/src/vrx/vrx_gz/models/my_asv/model.sdf\",name:\"my_asv\",pose:{position:{x:0 y:0 z:0.5}}'
+exec bash
+"
+
+sleep 2
+
+# Relay
+gnome-terminal -- bash -c "
+source /opt/ros/humble/setup.bash
+source ~/vrx_ws/install/setup.bash
+ros2 run asv_control asv_gz_relay
+exec bash
+"
+
+# Joy
+gnome-terminal -- bash -c "
+source /opt/ros/humble/setup.bash
+source ~/vrx_ws/install/setup.bash
+ros2 run joy joy_node
+exec bash
+"
+
+# Joystick control
+gnome-terminal -- bash -c "
+source /opt/ros/humble/setup.bash
+source ~/vrx_ws/install/setup.bash
+ros2 run asv_control joystick_asv_control
+exec bash
+"
+
+# GPS
+gnome-terminal -- bash -c "
+source /opt/ros/humble/setup.bash
+source ~/vrx_ws/install/setup.bash
+ros2 run asv_control gps_publisher
+exec bash
+"
+
+# IMU
+gnome-terminal -- bash -c "
+source /opt/ros/humble/setup.bash
+source ~/vrx_ws/install/setup.bash
+ros2 run asv_control imu_rpy_publisher
+exec bash
+"
+
+# Path
+gnome-terminal -- bash -c "
+source /opt/ros/humble/setup.bash
+source ~/vrx_ws/install/setup.bash
+ros2 run asv_control path_publisher
+exec bash
+"
+
+# Trail
+gnome-terminal -- bash -c "
+source /opt/ros/humble/setup.bash
+source ~/vrx_ws/install/setup.bash
+ros2 run asv_control gazebo_path_trail
+exec bash
+"
+
+# Waypoint Bridge
+gnome-terminal -- bash -c "
+source /opt/ros/humble/setup.bash
+source ~/vrx_ws/install/setup.bash
+ros2 run gz_waypoint_bridge gz_waypoint_bridge_node
+exec bash
+"
+"
+
+sleep 2
+
+# GPS LOS Controller
+gnome-terminal -- bash -c "
+source /opt/ros/humble/setup.bash
+source ~/vrx_ws/install/setup.bash
+ros2 run asv_control adaptive_los_pid_follower
+exec bash
+"
+
+
+
+
+# DVL
+gnome-terminal -- bash -c "
+cd ~/vrx_ws
+source /opt/ros/humble/setup.bash
+source ~/vrx_ws/install/setup.bash
+ros2 run asv_control dvl_publisher
+exec bash
+"
+

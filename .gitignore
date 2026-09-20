@@ -1,0 +1,25 @@
+# ROS 2 generated files
+build/
+install/
+log/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# ROS bags
+bags/
+
+# Upstream VRX repository
+src/vrx/
+
+# Large Navis mesh
+src/navis_model/models/navis_vessel/meshes/navis_vessel.stl
+
+# Editor/temp files
+.vscode/
+.idea/
+*.swp
+*.tmp
+.DS_Store

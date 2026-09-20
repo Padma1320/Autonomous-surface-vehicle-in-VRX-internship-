@@ -1,0 +1,125 @@
+
+import rclpy
+from rclpy.node import Node
+from sensor_msgs.msg import Joy
+from std_msgs.msg import Float64
+import math
+
+class JoystickASVControl(Node):
+
+    def __init__(self):
+        super().__init__('joystick_asv_control')
+
+        self.thruster_pub = self.create_publisher(Float64, '/asv/thruster_cmd', 10)
+        self.rudder_pub = self.create_publisher(Float64, '/asv/rudder_cmd', 10)
+
+        self.joy_sub = self.create_subscription(
+            Joy,
+            '/joy',
+            self.joy_callback,
+            10
+        )
+
+        # Speed settings
+        self.current_speed = 0.0
+        self.speed_step = 2.0
+        self.max_speed = 60.0
+
+        # Rudder settings
+        self.max_rudder = 35
+        self.deadzone = 0.10
+
+        # Button memory to avoid repeated speed jumps
+        self.prev_buttons = []
+
+        self.get_logger().info('Joystick ASV control started')
+        self.get_logger().info('A = speed up, B = speed down, X = stop')
+        self.get_logger().info('Right stick up/down = forward/reverse')
+        self.get_logger().info('Right stick left/right = rudder')
+
+    def apply_deadzone(self, value):
+        if abs(value) < self.deadzone:
+            return 0.0
+        return value
+
+    def button_pressed_once(self, msg, button_index):
+        if len(msg.buttons) <= button_index:
+            return False
+
+        current = msg.buttons[button_index]
+
+        if len(self.prev_buttons) <= button_index:
+            previous = 0
+        else:
+            previous = self.prev_buttons[button_index]
+
+        return current == 1 and previous == 0
+
+    def joy_callback(self, msg):
+
+        # Buttons:
+        # A = button[0]
+        # B = button[1]
+        # X = button[2]
+
+        if self.button_pressed_once(msg, 0):
+            self.current_speed += self.speed_step
+            if self.current_speed > self.max_speed:
+                self.current_speed = self.max_speed
+            self.get_logger().info(f'Speed increased: {self.current_speed:.1f}')
+
+        if self.button_pressed_once(msg, 1):
+            self.current_speed -= self.speed_step
+            if self.current_speed < 0.0:
+                self.current_speed = 0.0
+            self.get_logger().info(f'Speed decreased: {self.current_speed:.1f}')
+
+        if self.button_pressed_once(msg, 2):
+            self.current_speed = 0.0
+            self.get_logger().info('STOP: Speed set to 0')
+
+        if len(msg.axes) < 5:
+            self.prev_buttons = list(msg.buttons)
+            return
+
+        # Right stick
+        rudder_axis = self.apply_deadzone(msg.axes[3])
+        direction_axis = self.apply_deadzone(msg.axes[4])
+
+        # Direction control using stored speed
+        if direction_axis < -0.10:
+            thrust = self.current_speed        # stick up = forward
+        elif direction_axis > 0.10:
+            thrust = -self.current_speed       # stick down = reverse
+        else:
+            thrust = 0.0
+
+        # Rudder control
+        rudder = -rudder_axis * self.max_rudder
+
+        thrust_msg = Float64()
+        rudder_msg = Float64()
+
+        thrust_msg.data = thrust
+        rudder_msg.data = rudder
+
+        self.thruster_pub.publish(thrust_msg)
+        self.rudder_pub.publish(rudder_msg)
+
+        self.get_logger().info(
+            f'Speed Set: {self.current_speed:.1f}, Thrust: {thrust:.2f}, Rudder: {rudder:.2f}'
+        )
+
+        self.prev_buttons = list(msg.buttons)
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = JoystickASVControl()
+    rclpy.spin(node)
+    node.destroy_node()
+    rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()

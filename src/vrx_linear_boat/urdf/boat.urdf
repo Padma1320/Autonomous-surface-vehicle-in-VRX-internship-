@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<robot name="linear_boat">
+  <!-- Weightless dummy root link for KDL compatibility -->
+  <link name="dummy_link"/>
+  
+  <joint name="dummy_to_base" type="fixed">
+    <parent link="dummy_link"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://vrx_linear_boat/meshes/boat.stl" scale="1 1 1"/>
+      </geometry>
+      <material name="blue">
+        <color rgba="0.1 0.1 0.8 1.0"/>
+      </material>
+    </visual>
+    <inertial>
+      <mass value="10.0"/>
+      <origin xyz="0 0 0"/>
+      <inertia ixx="0.525" ixy="0.0" ixz="0.0" iyy="2.77" iyz="0.0" izz="2.77"/>
+    </inertial>
+  </link>
+</robot>

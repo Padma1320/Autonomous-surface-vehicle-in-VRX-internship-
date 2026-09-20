@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>gz_waypoint_clicker</name>
+  <version>0.0.1</version>
+  <description>Gazebo GUI waypoint click plugin</description>
+
+  <maintainer email="user@example.com">user</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>cmake</buildtool_depend>
+
+  <depend>gz-sim7-dev</depend>
+  <depend>gz-gui7-dev</depend>
+  <depend>gz-rendering7-dev</depend>
+  <depend>gz-plugin2-dev</depend>
+  <depend>gz-transport12-dev</depend>
+  <depend>gz-msgs9-dev</depend>
+
+  <export>
+    <build_type>cmake</build_type>
+  </export>
+</package>

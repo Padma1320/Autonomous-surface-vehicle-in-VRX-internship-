@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="/WaypointClicker">
+    <file alias="WaypointClicker.qml">qml/WaypointClicker.qml</file>
+  </qresource>
+</RCC>
