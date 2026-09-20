@@ -67,7 +67,7 @@ The simulated platform includes:
 - interactive waypoint selection
 - keyboard and joystick control
 
-The simulation platform enabled navigation, sensing and control algorithms to be developed and evaluated in software before later physical-system validation stages.
+The simulation platform enabled navigation, sensing and control algorithms to be developed and evaluated in software.
 
 ---
 
@@ -120,40 +120,40 @@ The simulation platform enabled navigation, sensing and control algorithms to be
 
 # Guidance, Navigation & Control (GNC)
 
-The project implements a complete simulation-level **Guidance, Navigation & Control (GNC)** workflow.
+The project implements a simulation-level **Guidance, Navigation & Control (GNC)** workflow.
 
 ### Guidance
 
-- waypoint-based path definition
+- Waypoint-based path definition
 - Line-of-Sight (LOS) guidance
-- look-ahead target generation
-- desired-heading generation
+- Look-ahead target generation
+- Desired-heading generation
 
 ### Navigation
 
 - GPS / NavSat position
 - IMU orientation
-- yaw / heading estimation
-- waypoint tracking
+- Yaw / heading estimation
+- Waypoint tracking
 - Cross-Track Error (CTE) evaluation
 
 ### Control
 
-- heading-error control
-- rudder commands
-- thruster commands
-- keyboard interface
-- joystick interface
-- autonomous waypoint following
+- Heading-error control
+- Rudder commands
+- Thruster commands
+- Keyboard interface
+- Joystick interface
+- Autonomous waypoint following
 - Nomoto-based vessel-dynamics experimentation
 
-The overall GNC loop can be represented as:
+The overall GNC loop is:
 
 ```text
         GPS / IMU
             |
             v
-     Vessel State
+      Vessel State
             |
             v
       LOS Guidance
@@ -173,12 +173,10 @@ The overall GNC loop can be represented as:
             v
         Navis ASV
             |
-            +------------------+
-                               |
-                               v
-                         Sensor Feedback
-                               |
-                               +----> next control cycle
+            v
+     Sensor Feedback
+            |
+            +------> Next Control Cycle
 ```
 
 ---
@@ -214,7 +212,7 @@ Gazebo Waypoint Clicker
    Desired Heading
           |
           v
-     ASV Control
+      ASV Control
 ```
 
 ---
@@ -252,7 +250,7 @@ A look-ahead distance is used to obtain smoother path-following behaviour.
 
 Navigation performance is evaluated using **Cross-Track Error (CTE)**.
 
-CTE represents the lateral displacement of the vessel from the desired path:
+CTE represents the lateral displacement of the vessel from the desired path.
 
 ```text
 Desired Path
@@ -317,8 +315,6 @@ keyboard_asv_control
 for direct thruster and rudder commands.
 
 This was used during initial vessel integration and functional testing.
-
----
 
 ## Joystick Interface & Teleoperation
 
@@ -594,7 +590,18 @@ Both policies were trained for **900,000 timesteps** in the experimental study.
 
 # SAC vs TD3 Evaluation
 
-The trained SAC and TD3 policies were evaluated across **10 path geometries**, including straight, curved, turning, U-turn, triangular, oval, semicircular and sharp-zigzag trajectories.
+The trained SAC and TD3 policies were evaluated across **10 path geometries**, including:
+
+- straight paths
+- moderate turns
+- sharp turns
+- U-turn
+- triangle
+- oval
+- semicircle
+- smooth curve
+- mixed-curvature paths
+- sharp zigzag
 
 The evaluation considered three operating regimes:
 
@@ -602,7 +609,7 @@ The evaluation considered three operating regimes:
 2. **Current disturbance**
 3. **Current + sensor noise**
 
-The experiments evaluate more than successful completion by examining:
+The experiments evaluated:
 
 - trajectory tracking
 - Cross-Track Error (CTE)
@@ -616,7 +623,7 @@ The experiments evaluate more than successful completion by examining:
 ## Semicircle Evaluation
 
 <p align="center">
-  <img src="sac-td3-semicircle.jpeg" width="950"
+  <img src="IMG_0242.jpeg" width="950"
        alt="SAC and TD3 semicircle path-following evaluation">
 </p>
 
@@ -624,7 +631,7 @@ The experiments evaluate more than successful completion by examining:
   <em>SAC vs TD3 semicircle evaluation showing trajectory tracking, rudder command, cross-track error and disturbance traces.</em>
 </p>
 
-The semicircle experiment tests continuous curved-path tracking and provides a useful comparison of the two learned controllers over sustained curvature.
+The semicircle experiment tests continuous curved-path tracking and compares the two learned controllers over sustained curvature.
 
 The figure combines:
 
@@ -640,7 +647,7 @@ The figure combines:
 ## Sharp-Zigzag Evaluation
 
 <p align="center">
-  <img src="sac-td3-sharp-zigzag.jpeg" width="950"
+  <img src="IMG_0244.jpeg" width="950"
        alt="SAC and TD3 sharp-zigzag path-following evaluation">
 </p>
 
@@ -648,9 +655,9 @@ The figure combines:
   <em>SAC vs TD3 sharp-zigzag evaluation showing trajectory tracking, steering activity, cross-track error and environmental disturbances.</em>
 </p>
 
-The sharp-zigzag trajectory represents a more demanding path-following condition because the desired heading changes rapidly and repeatedly.
+The sharp-zigzag trajectory represents a demanding path-following condition because the desired heading changes rapidly and repeatedly.
 
-It provides a useful stress test for:
+It provides a stress test for:
 
 - steering response
 - tracking accuracy
@@ -669,11 +676,11 @@ In the nominal no-disturbance evaluation, both trained controllers successfully 
 | Successful paths | **10 / 10** | **10 / 10** |
 | Mean CTE | **0.245 m** | **0.455 m** |
 
-The evaluation showed that SAC achieved lower mean cross-track error in the nominal ten-path comparison.
+In the nominal ten-path comparison, SAC achieved lower mean cross-track error than TD3.
 
 The broader experiments also evaluated the policies under environmental current and sensor-noise conditions to examine robustness beyond nominal path following.
 
-The purpose of the comparison was not only to determine whether the vessel reached the goal, but also to study:
+The comparison considered:
 
 - path-tracking accuracy
 - steering behaviour
@@ -786,8 +793,8 @@ Autonomous-surface-vehicle-in-VRX-internship-/
 ├── IMG_0238.jpeg
 ├── IMG_0239.jpeg
 ├── IMG_0240.jpeg
-├── sac-td3-semicircle.jpeg
-├── sac-td3-sharp-zigzag.jpeg
+├── IMG_0242.jpeg
+├── IMG_0244.jpeg
 │
 ├── bag_to_csv_plot.py
 ├── gazebo_lidar_monitor.py
