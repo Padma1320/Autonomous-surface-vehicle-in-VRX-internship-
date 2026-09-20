@@ -1,20 +1,20 @@
 # Autonomous Surface Vehicle Navigation in VRX
 
-**ROS 2 · Gazebo / VRX · Marine Robotics · Autonomous Navigation · Sensor Integration · Reinforcement Learning**
+**ROS 2 · Gazebo / VRX · Guidance, Navigation & Control (GNC) · Marine Robotics · Sensor Integration · Reinforcement Learning**
 
 **Engineering Internship · Seaconvoy Systems Engineering Pvt. Ltd. · 2026**
 
 A ROS 2 and Gazebo-based autonomous surface vessel (ASV) simulation, navigation and control system developed during my engineering internship at **Seaconvoy Systems Engineering Pvt. Ltd.**
 
-The project focused on configuring and validating the **Navis ASV** in the Virtual RobotX (VRX) simulation environment and progressively developing waypoint navigation, LOS guidance, vessel control, sensor integration, visualization and learning-based path-following capabilities.
+The project focused on configuring and validating the **Navis ASV** in the Virtual RobotX (VRX) simulation environment and progressively developing **Guidance, Navigation & Control (GNC)** capabilities including waypoint navigation, Line-of-Sight guidance, heading control, sensor integration, visualization, joystick-based vessel control and reinforcement-learning-based path following.
 
-This engineering work later provided the foundation for my separate research into recurrent reinforcement learning, multi-vessel collision avoidance and predictive safety filtering.
+This engineering work later provided the simulation and autonomy foundation for my separate research into recurrent reinforcement learning, multi-vessel collision avoidance and predictive safety filtering.
 
 ---
 
 ## Project Overview
 
-The project was developed progressively from vessel integration and manual control toward autonomous navigation and learning-based control.
+The project was developed progressively from vessel integration and manual control toward autonomous navigation, perception and learning-based control.
 
 ```text
 Navis ASV Integration
@@ -23,16 +23,19 @@ Navis ASV Integration
 ROS 2 ↔ Gazebo Interface
         |
         v
-Manual Thruster / Rudder Control
+Keyboard + Joystick Control
         |
         v
-GPS + IMU Integration
+GPS + IMU Navigation
         |
         v
-Waypoint Navigation
+Interactive Waypoint Selection
         |
         v
-LOS Path Following
+LOS Guidance
+        |
+        v
+Heading / Rudder Control
         |
         v
 LiDAR + Stereo Perception
@@ -50,65 +53,132 @@ SAC / TD3 Path-Following Experiments
 
 The project uses a custom **Navis autonomous surface vessel** integrated into the VRX `sydney_regatta` simulation environment.
 
-The simulated vessel includes:
+The simulated platform includes:
 
 - thruster actuation
 - rudder steering
 - hydrodynamic behaviour
-- GPS
+- GPS / NavSat
 - IMU
 - LiDAR
-- stereo camera
+- ZED2i stereo camera
 - DVL
 - ROS 2 interfaces
+- interactive waypoint selection
+- keyboard and joystick control
 
-This created a software platform for developing and evaluating autonomous marine navigation algorithms before physical-system validation.
+The simulation platform enabled navigation, sensing and control algorithms to be developed and evaluated in software before later physical-system validation stages.
 
 ---
 
 # System Architecture
 
 ```text
-                    Waypoint Selection
-                           |
-                           v
+                   Waypoint Selection
+                          |
+                          v
                     GPS Waypoints
-                           |
-                           v
-                     LOS Guidance
-                           |
-                           v
-                    Desired Heading
-                           |
-                           v
-                   Heading Controller
-                           |
-                           v
-                 Rudder / Thruster Commands
-                           |
-                           v
-              +-------------------------+
-              |       ROS 2 Layer       |
-              +-------------------------+
-                           |
-                           v
-              +-------------------------+
-              |      Gazebo / VRX       |
-              |        Navis ASV        |
-              +-------------------------+
-                           |
-             +-------------+-------------+
-             |             |             |
-             v             v             v
-          GPS / IMU      LiDAR       Stereo Camera
-             |             |             |
-             +-------------+-------------+
-                           |
-                           v
-                         ROS 2
-                           |
-                           v
-                         RViz2
+                          |
+                          v
+                    LOS Guidance
+                          |
+                          v
+                   Desired Heading
+                          |
+                          v
+                  Heading Controller
+                          |
+                          v
+               Rudder / Thruster Commands
+                          |
+                          v
+             +-------------------------+
+             |       ROS 2 Layer       |
+             +-------------------------+
+                          |
+                          v
+             +-------------------------+
+             |      Gazebo / VRX       |
+             |        Navis ASV        |
+             +-------------------------+
+                          |
+            +-------------+-------------+
+            |             |             |
+            v             v             v
+         GPS / IMU      LiDAR       Stereo Camera
+            |             |             |
+            +-------------+-------------+
+                          |
+                          v
+                        ROS 2
+                          |
+                          v
+                        RViz2
+```
+
+---
+
+# Guidance, Navigation & Control (GNC)
+
+The project implements a complete simulation-level **Guidance, Navigation & Control (GNC)** workflow.
+
+### Guidance
+
+- waypoint-based path definition
+- Line-of-Sight (LOS) guidance
+- look-ahead target generation
+- desired-heading generation
+
+### Navigation
+
+- GPS / NavSat position
+- IMU orientation
+- yaw / heading estimation
+- waypoint tracking
+- Cross-Track Error (CTE) evaluation
+
+### Control
+
+- heading-error control
+- rudder commands
+- thruster commands
+- keyboard interface
+- joystick interface
+- autonomous waypoint following
+- Nomoto-based vessel-dynamics experimentation
+
+The overall GNC loop can be represented as:
+
+```text
+        GPS / IMU
+            |
+            v
+     Vessel State
+            |
+            v
+      LOS Guidance
+            |
+            v
+     Desired Heading
+            |
+            v
+      Heading Error
+            |
+            v
+    Steering Control
+            |
+            v
+   Rudder / Thruster
+            |
+            v
+        Navis ASV
+            |
+            +------------------+
+                               |
+                               v
+                         Sensor Feedback
+                               |
+                               +----> next control cycle
 ```
 
 ---
@@ -126,7 +196,7 @@ A custom waypoint workflow was used to create navigation targets directly inside
   <em>Navis ASV in the VRX environment with the Gazebo Waypoint Clicker activated for interactive waypoint selection.</em>
 </p>
 
-The waypoint interface allows navigation targets to be selected in the simulated environment and transferred into the ROS 2 navigation pipeline.
+The waypoint interface allows navigation targets selected in the simulated environment to enter the ROS 2 navigation pipeline.
 
 ```text
 Gazebo Waypoint Clicker
@@ -164,8 +234,6 @@ The autonomous navigation system uses **Line-of-Sight (LOS) guidance** to genera
 
 For consecutive waypoints, LOS guidance selects a target point ahead of the vessel rather than simply steering directly toward the next waypoint.
 
-Conceptually:
-
 ```text
 Waypoint A -------------------------------- Waypoint B
                           *
@@ -184,7 +252,7 @@ A look-ahead distance is used to obtain smoother path-following behaviour.
 
 Navigation performance is evaluated using **Cross-Track Error (CTE)**.
 
-CTE measures the lateral displacement of the vessel from the desired path:
+CTE represents the lateral displacement of the vessel from the desired path:
 
 ```text
 Desired Path
@@ -195,13 +263,13 @@ Desired Path
                        Vessel
 ```
 
-Tracking CTE allows path-following performance to be evaluated quantitatively rather than only through visual inspection.
+Tracking CTE allows path-following performance to be evaluated quantitatively rather than relying only on visual inspection.
 
 ---
 
 # Heading & Vessel Control
 
-The desired heading generated by LOS guidance is compared with the current vessel heading estimated from the IMU.
+The desired heading generated by LOS guidance is compared with the vessel heading obtained from the IMU.
 
 ```text
 Desired Heading --------+
@@ -227,10 +295,67 @@ The control system interfaces with:
 - rudder commands
 - thruster commands
 - vessel heading
-- waypoint information
 - vessel position
+- waypoint information
 
 through ROS 2.
+
+---
+
+# Keyboard & Joystick Interface Control
+
+Manual vessel control was implemented before autonomous navigation to validate the ROS 2–Gazebo command interface and vessel response.
+
+## Keyboard Control
+
+The repository includes:
+
+```text
+keyboard_asv_control
+```
+
+for direct thruster and rudder commands.
+
+This was used during initial vessel integration and functional testing.
+
+---
+
+## Joystick Interface & Teleoperation
+
+A **Logitech game controller** was integrated into the ROS 2 control pipeline for manual ASV operation.
+
+```text
+Logitech Joystick
+       |
+       v
+    joy_node
+       |
+       v
+joystick_asv_control
+       |
+   +---+---+
+   |       |
+   v       v
+Thruster  Rudder
+Command   Command
+   |       |
+   +---+---+
+       |
+       v
+    Navis ASV
+```
+
+The joystick interface was used to test:
+
+- manual vessel manoeuvring
+- thruster response
+- rudder response
+- ROS 2 command transmission
+- steering behaviour
+- vessel dynamics
+- transition from manual to autonomous control
+
+This provided a practical control interface for validating the simulated ASV before autonomous GNC algorithms were introduced.
 
 ---
 
@@ -257,7 +382,7 @@ Hydrodynamic parameters were also configured to obtain usable surge, sway and ya
 
 # Sensor Integration
 
-The Navis ASV simulation integrates multiple sensors used for navigation, perception and system evaluation.
+The Navis ASV simulation integrates multiple sensors supporting navigation, perception and system evaluation.
 
 | Sensor | Application |
 |---|---|
@@ -269,7 +394,7 @@ The Navis ASV simulation integrates multiple sensors used for navigation, percep
 
 ---
 
-## GPS
+## GPS / NavSat
 
 GPS/NavSat data provides vessel-position information to the navigation pipeline.
 
@@ -310,7 +435,7 @@ Orientation
 Yaw / Heading
      |
      v
-LOS + Heading Control
+GNC Pipeline
 ```
 
 ---
@@ -319,13 +444,13 @@ LOS + Heading Control
 
 A simulated LiDAR provides range measurements for obstacle perception.
 
-The Gazebo LiDAR data is bridged into ROS 2 and represented using:
+Gazebo LiDAR data is bridged into ROS 2 and represented using:
 
 ```text
 sensor_msgs/msg/LaserScan
 ```
 
-The repository also includes LiDAR monitoring and debugging utilities.
+The repository also contains LiDAR monitoring and debugging utilities.
 
 ```text
 Gazebo LiDAR
@@ -380,7 +505,7 @@ The stereo pipeline provides:
              RViz2
 ```
 
-### RViz2 Visualization
+## RViz2 Visualization
 
 <p align="center">
   <img src="IMG_0240.jpeg" width="900"
@@ -391,13 +516,13 @@ The stereo pipeline provides:
   <em>RViz2 visualization of stereo-camera images together with the reconstructed 3D PointCloud2 output.</em>
 </p>
 
-This visualization was used to verify that the simulated stereo sensing pipeline was successfully connected through ROS 2.
+RViz2 was used to inspect the simulated sensor pipeline and verify the ROS 2 perception outputs.
 
 ---
 
 # DVL Integration
 
-A simulated **Doppler Velocity Log (DVL)** interface was also included for vessel-velocity information.
+A simulated **Doppler Velocity Log (DVL)** interface was included for vessel-velocity information.
 
 The repository contains:
 
@@ -411,84 +536,47 @@ This extends the simulated sensing stack beyond position and orientation measure
 
 # ROS 2 / Gazebo Integration
 
-Control algorithms operate as ROS 2 nodes while vessel physics and sensor simulation run in Gazebo.
+Guidance and control algorithms operate as ROS 2 nodes while vessel physics and sensor simulation run in Gazebo.
 
 ```text
-ROS 2 Navigation / Controller
-             |
-      +------+------+
-      |             |
-      v             v
-   Thruster        Rudder
-   Command         Command
-      |             |
-      +------+------+
-             |
-             v
-       Gazebo Relay
-             |
-             v
-         Navis ASV
+ROS 2 GNC / Controller
+          |
+     +----+----+
+     |         |
+     v         v
+ Thruster    Rudder
+ Command     Command
+     |         |
+     +----+----+
+          |
+          v
+     Gazebo Relay
+          |
+          v
+      Navis ASV
+          |
+          v
+   Simulated Sensors
+          |
+          v
+        ROS 2
 ```
 
-This separation allows guidance, sensing and control algorithms to be developed independently from the underlying simulator.
-
----
-
-# Teleoperation & Functional Validation
-
-Manual vessel control was implemented before autonomous navigation to verify the control interfaces and vessel response.
-
-## Keyboard Control
-
-The repository includes:
-
-```text
-keyboard_asv_control
-```
-
-for direct thruster and rudder control.
-
-## Joystick Control
-
-A Logitech game controller was also integrated through ROS 2.
-
-```text
-joy_node
-    |
-    v
-joystick_asv_control
-    |
-    +--------------+
-    |              |
-    v              v
-Thruster         Rudder
-Command          Command
-```
-
-Teleoperation was useful for validating:
-
-- ROS 2 command transmission
-- thruster behaviour
-- rudder response
-- vessel steering
-- simulation integration
-
-before autonomous guidance was introduced.
+This architecture allows guidance, sensing and control components to be developed independently from the underlying simulator.
 
 ---
 
 # Reinforcement Learning Path Following
 
-The internship project was extended from classical LOS-based navigation to **learning-based continuous control**.
+The internship project was extended from classical LOS-based navigation to **learning-based continuous-control experiments**.
 
 Two off-policy reinforcement-learning algorithms were investigated:
 
-### Soft Actor-Critic — SAC
+### Soft Actor-Critic (SAC)
 
 and
 
-### Twin Delayed Deep Deterministic Policy Gradient — TD3
+### Twin Delayed Deep Deterministic Policy Gradient (TD3)
 
 The repository contains trained policy checkpoints:
 
@@ -498,67 +586,100 @@ rl_models/
 └── td3_asv_waypoint.zip
 ```
 
-The RL environment used simplified Nomoto vessel dynamics and continuous rudder control for waypoint/path-following experiments.
+The RL environment uses simplified Nomoto vessel dynamics and continuous rudder control for waypoint/path-following experiments.
 
-Both algorithms were trained for **900,000 timesteps** in the experimental study.
-
----
-
-## SAC vs TD3 Evaluation
-
-The trained policies were evaluated across **10 path geometries**, including:
-
-- straight path
-- moderate turns
-- sharp turns
-- U-turn
-- triangle
-- oval
-- semicircle
-- smooth curve
-- mixed-curvature paths
-- sharp zigzag
-
-The evaluation considered:
-
-1. nominal path following
-2. current disturbance
-3. current + sensor noise
-
-This allowed the learned controllers to be tested beyond a single trajectory.
+Both policies were trained for **900,000 timesteps** in the experimental study.
 
 ---
 
-## Nominal Path-Following Results
+# SAC vs TD3 Evaluation
 
-Both trained controllers successfully completed all ten nominal test paths.
+The trained SAC and TD3 policies were evaluated across **10 path geometries**, including straight, curved, turning, U-turn, triangular, oval, semicircular and sharp-zigzag trajectories.
+
+The evaluation considered three operating regimes:
+
+1. **No disturbance**
+2. **Current disturbance**
+3. **Current + sensor noise**
+
+The experiments evaluate more than successful completion by examining:
+
+- trajectory tracking
+- Cross-Track Error (CTE)
+- rudder behaviour
+- path geometry
+- disturbance response
+- sensor-noise robustness
+
+---
+
+## Semicircle Evaluation
+
+<p align="center">
+  <img src="sac-td3-semicircle.jpeg" width="950"
+       alt="SAC and TD3 semicircle path-following evaluation">
+</p>
+
+<p align="center">
+  <em>SAC vs TD3 semicircle evaluation showing trajectory tracking, rudder command, cross-track error and disturbance traces.</em>
+</p>
+
+The semicircle experiment tests continuous curved-path tracking and provides a useful comparison of the two learned controllers over sustained curvature.
+
+The figure combines:
+
+- desired path and waypoints
+- SAC trajectory
+- TD3 trajectory
+- rudder commands
+- absolute CTE
+- disturbance traces
+
+---
+
+## Sharp-Zigzag Evaluation
+
+<p align="center">
+  <img src="sac-td3-sharp-zigzag.jpeg" width="950"
+       alt="SAC and TD3 sharp-zigzag path-following evaluation">
+</p>
+
+<p align="center">
+  <em>SAC vs TD3 sharp-zigzag evaluation showing trajectory tracking, steering activity, cross-track error and environmental disturbances.</em>
+</p>
+
+The sharp-zigzag trajectory represents a more demanding path-following condition because the desired heading changes rapidly and repeatedly.
+
+It provides a useful stress test for:
+
+- steering response
+- tracking accuracy
+- controller recovery
+- rudder activity
+- disturbance robustness
+
+---
+
+# SAC vs TD3 Results
+
+In the nominal no-disturbance evaluation, both trained controllers successfully completed all ten test paths.
 
 | Metric | SAC | TD3 |
 |---|---:|---:|
 | Successful paths | **10 / 10** | **10 / 10** |
 | Mean CTE | **0.245 m** | **0.455 m** |
 
-In the reported nominal evaluation, SAC achieved lower mean cross-track error and required less average rudder activity than TD3.
+The evaluation showed that SAC achieved lower mean cross-track error in the nominal ten-path comparison.
 
-The comparison was used to study the trade-off between path-tracking accuracy, steering activity and robustness rather than relying on a single success metric.
+The broader experiments also evaluated the policies under environmental current and sensor-noise conditions to examine robustness beyond nominal path following.
 
----
+The purpose of the comparison was not only to determine whether the vessel reached the goal, but also to study:
 
-## Robustness Evaluation
-
-The RL evaluation also introduced environmental and sensing disturbances.
-
-The test framework examined controller behaviour under:
-
-- current disturbance
-- sensor noise
-- varying path curvature
-- sharp heading changes
-- demanding zigzag trajectories
-
-The **sharp-zigzag geometry** was among the most demanding test cases because of its rapid changes in desired heading.
-
-These experiments provided the transition from basic waypoint following toward more robust autonomous navigation research.
+- path-tracking accuracy
+- steering behaviour
+- control effort
+- robustness
+- sensitivity to path geometry
 
 ---
 
@@ -665,6 +786,8 @@ Autonomous-surface-vehicle-in-VRX-internship-/
 ├── IMG_0238.jpeg
 ├── IMG_0239.jpeg
 ├── IMG_0240.jpeg
+├── sac-td3-semicircle.jpeg
+├── sac-td3-sharp-zigzag.jpeg
 │
 ├── bag_to_csv_plot.py
 ├── gazebo_lidar_monitor.py
@@ -688,7 +811,7 @@ The repository contains the development launcher:
 
 The launcher was used to coordinate the main simulation, vessel and ROS 2 components.
 
-> **Note:** This launcher originates from the internship development environment and may contain machine-specific paths. These paths should be updated when reproducing the project on another system.
+> **Note:** The launcher originates from the internship development environment and may contain machine-specific paths. These should be updated when reproducing the project on another system.
 
 ---
 
@@ -780,39 +903,31 @@ ros2 run asv_control lidar_debug_node
 - Custom Gazebo plugins
 - Autonomous Surface Vehicles
 
-## Programming & Development
-
-- Python
-- C++
-- `rclpy`
-- NumPy
-- Linux / Ubuntu 22.04
-- Bash / ROS 2 CLI
-- Git / GitHub
-- `colcon`
-
-## Navigation & Control
+## Guidance, Navigation & Control (GNC)
 
 - Waypoint navigation
-- Line-of-Sight guidance
-- Cross-Track Error
+- Line-of-Sight (LOS) guidance
+- Cross-Track Error (CTE)
 - Desired-heading generation
-- Heading control
+- Heading-error control
 - Rudder control
 - Thruster control
-- Nomoto first-order dynamics
+- Joystick interface & teleoperation
+- Keyboard control
+- Nomoto first-order vessel dynamics
 - Hydrodynamic modelling
+- Path-following evaluation
 
 ## Sensors & Perception
 
-- LiDAR
-- Stereo Camera
 - GPS / NavSat
 - IMU
-- DVL
+- LiDAR
 - LaserScan
-- PointCloud2
+- ZED2i stereo camera
 - Stereo disparity
+- PointCloud2
+- DVL
 - Sensor synchronization
 - Sensor logging
 
@@ -827,7 +942,31 @@ ros2 run asv_control lidar_debug_node
 - Reward design
 - Policy training
 - Policy checkpointing
-- Multi-scenario evaluation
+- Multi-path evaluation
+- Disturbance testing
+- Sensor-noise testing
+
+## ROS 2 Development
+
+- `rclpy`
+- ROS 2 nodes
+- Publishers / subscribers
+- Topics
+- Sensor messages
+- ROS–Gazebo bridges
+- Custom ROS 2 packages
+- ROS 2 CLI
+- `colcon`
+
+## Programming & Development
+
+- Python
+- C++
+- NumPy
+- Bash
+- Linux / Ubuntu 22.04
+- Git
+- GitHub
 
 ## Evaluation & Visualization
 
@@ -836,46 +975,55 @@ ros2 run asv_control lidar_debug_node
 - RViz2
 - Gazebo visualization
 - CTE analysis
+- Rudder-command analysis
 - Path visualization
-- Disturbance testing
-- Sensor-noise testing
 - Quantitative policy comparison
+- Multi-scenario testing
 
 ---
 
 # Internship Scope
 
-This repository represents the **engineering development and learning-based navigation work carried out around the Navis ASV simulation platform during the internship**.
-
-The internship work included:
+This repository represents the **engineering development and reinforcement-learning path-following work carried out around the Navis ASV simulation platform during the internship**.
 
 ```text
-ASV Simulation Integration
-        ↓
-ROS 2 / Gazebo Communication
-        ↓
-Manual Vessel Control
-        ↓
+Navis ASV / VRX Integration
+            |
+            v
+ROS 2 ↔ Gazebo Communication
+            |
+            v
+Keyboard + Joystick Control
+            |
+            v
 GPS + IMU Navigation
-        ↓
+            |
+            v
 Waypoint Interface
-        ↓
+            |
+            v
+Guidance, Navigation & Control
+            |
+            v
 LOS Path Following
-        ↓
+            |
+            v
 LiDAR + Stereo Perception
-        ↓
+            |
+            v
 RViz2 Visualization
-        ↓
-SAC / TD3 Path-Following Experiments
+            |
+            v
+SAC / TD3 Path Following
 ```
 
-The project established the simulation and autonomy foundation that was subsequently extended into a separate research project.
+The project established the simulation, sensing and GNC foundation that was subsequently extended into a separate collision-avoidance research project.
 
 ---
 
 # Subsequent Research
 
-Following the internship-stage work, the autonomous-navigation research was extended toward:
+Following the internship-stage work, the autonomous-navigation framework was extended toward:
 
 - recurrent PPO
 - recurrent steering and speed policies
@@ -896,7 +1044,7 @@ This later research is maintained separately:
 
 **Research status: Under Review — IEEE ICRA 2027 · Extended work in progress**
 
-Keeping the two repositories separate distinguishes the original **internship engineering platform and SAC/TD3 experimentation** from the subsequent **research contribution**.
+Keeping the repositories separate distinguishes the original **internship engineering, GNC and SAC/TD3 experimentation** from the subsequent **research contribution**.
 
 ---
 
@@ -904,7 +1052,14 @@ Keeping the two repositories separate distinguishes the original **internship en
 
 This work was developed during an engineering internship at **Seaconvoy Systems Engineering Pvt. Ltd.**
 
-The internship involved configuring and validating an existing Seaconvoy-developed ASV model in Gazebo, establishing the simulation and ROS 2 framework, and developing autonomous navigation, sensing, control and reinforcement-learning experiments around the simulated Navis ASV platform.
+The internship involved configuring and validating an existing Seaconvoy-developed ASV model in Gazebo, establishing the simulation and ROS 2 framework, and developing navigation, sensing, control and reinforcement-learning experiments around the simulated Navis ASV platform.
 
 ---
 
+# Author
+
+**Padma Muthu Lakshmanan**  
+B.Tech — Instrumentation & Control Engineering  
+National Institute of Technology, Tiruchirappalli
+
+[GitHub](https://github.com/Padma1320)
