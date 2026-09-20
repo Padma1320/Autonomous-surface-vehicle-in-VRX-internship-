@@ -23,3 +23,7 @@ src/navis_model/models/navis_vessel/meshes/navis_vessel.stl
 *.swp
 *.tmp
 .DS_Store
+# Backup / accidental files
+*.save
+*.bak
+*~
