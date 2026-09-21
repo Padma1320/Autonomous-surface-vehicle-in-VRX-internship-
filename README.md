@@ -1,23 +1,23 @@
 # Autonomous Surface Vehicle Navigation in VRX
 
-**ROS 2 · Gazebo / VRX · Guidance, Navigation & Control (GNC) · Marine Robotics · Sensor Integration · Reinforcement Learning**
+**ROS 2 · Gazebo / VRX · Digital Twin Simulation · Software-in-the-Loop (SIL) · Guidance, Navigation & Control (GNC) · Marine Robotics · Reinforcement Learning · Collision Avoidance**
 
 **Engineering Internship · Seaconvoy Systems Engineering Pvt. Ltd. · 2026**
 
-A ROS 2 and Gazebo-based autonomous surface vessel (ASV) simulation, navigation and control system developed during my engineering internship at **Seaconvoy Systems Engineering Pvt. Ltd.**
+A ROS 2 and Gazebo/VRX-based autonomous surface vessel (ASV) simulation, navigation and control system developed during my engineering internship at **Seaconvoy Systems Engineering Pvt. Ltd.**
 
-The project focused on configuring and validating the **Navis ASV** in the Virtual RobotX (VRX) simulation environment and progressively developing **Guidance, Navigation & Control (GNC)** capabilities including waypoint navigation, Line-of-Sight guidance, heading control, sensor integration, visualization, joystick-based vessel control and reinforcement-learning-based path following.
+The project focused on configuring and validating the existing **NAVIS ASV physics-based simulation model** and progressively developing autonomous-navigation capabilities. The vessel's STL geometry was integrated with simulated dynamics, sensors and control interfaces to form a **Software-in-the-Loop (SIL) / digital-twin testbed** for navigation, control and simulation-based validation.
 
-This engineering work later provided the simulation and autonomy foundation for my separate research into recurrent reinforcement learning, multi-vessel collision avoidance and predictive safety filtering.
+The engineering workflow progressed from manual vessel control and classical GNC to LiDAR/stereo perception, reinforcement-learning-based guidance and navigation using SAC and TD3, and collision avoidance with static and dynamic obstacles. This work established the technical foundation for subsequent research in **safety-aware multi-vessel autonomous navigation**.
 
 ---
 
 ## Project Overview
 
-The project was developed progressively from vessel integration and manual control toward autonomous navigation, perception and learning-based control.
+The project was developed progressively from vessel integration and manual control toward autonomous navigation, perception, learning-based guidance and collision avoidance.
 
 ```text
-Navis ASV Integration
+NAVIS ASV / VRX Integration
         |
         v
 ROS 2 ↔ Gazebo Interface
@@ -32,7 +32,7 @@ GPS + IMU Navigation
 Interactive Waypoint Selection
         |
         v
-LOS Guidance
+Classical GNC / LOS Guidance
         |
         v
 Heading / Rudder Control
@@ -44,17 +44,21 @@ LiDAR + Stereo Perception
 RViz2 Visualization
         |
         v
-SAC / TD3 Path-Following Experiments
+SAC / TD3 RL Navigation
+        |
+        v
+Static + Dynamic Obstacle Avoidance
 ```
 
 ---
 
-# Navis ASV in VRX
+# NAVIS ASV Digital-Twin / SIL Testbed
 
-The project uses a custom **Navis autonomous surface vessel** integrated into the VRX `sydney_regatta` simulation environment.
+The project uses Seaconvoy's **NAVIS autonomous surface vessel** integrated into the VRX `sydney_regatta` simulation environment.
 
-The simulated platform includes:
+The physics-based simulation platform integrates:
 
+- NAVIS vessel STL geometry
 - thruster actuation
 - rudder steering
 - hydrodynamic behaviour
@@ -62,12 +66,23 @@ The simulated platform includes:
 - IMU
 - LiDAR
 - ZED2i stereo camera
-- DVL
 - ROS 2 interfaces
 - interactive waypoint selection
 - keyboard and joystick control
 
-The simulation platform enabled navigation, sensing and control algorithms to be developed and evaluated in software.
+The platform provided a **Software-in-the-Loop (SIL)** environment for developing, integrating and validating navigation, perception and control algorithms before physical-vessel testing.
+
+## Simulation & Validation
+
+The simulation workflow covered:
+
+- physics-based NAVIS ASV simulation in Gazebo / VRX
+- Software-in-the-Loop autonomy development
+- vessel dynamics and hydrodynamic configuration
+- ROS 2 sensor and actuator interface validation
+- navigation and closed-loop control testing
+- disturbance-based controller evaluation
+- simulation-based Verification & Validation (V&V)
 
 ---
 
@@ -99,7 +114,7 @@ The simulation platform enabled navigation, sensing and control algorithms to be
                           v
              +-------------------------+
              |      Gazebo / VRX       |
-             |        Navis ASV        |
+             |        NAVIS ASV        |
              +-------------------------+
                           |
             +-------------+-------------+
@@ -118,7 +133,7 @@ The simulation platform enabled navigation, sensing and control algorithms to be
 
 ---
 
-# Guidance, Navigation & Control (GNC)
+# Classical Guidance, Navigation & Control (GNC)
 
 The project implements a simulation-level **Guidance, Navigation & Control (GNC)** workflow.
 
@@ -171,7 +186,7 @@ The overall GNC loop is:
    Rudder / Thruster
             |
             v
-        Navis ASV
+        NAVIS ASV
             |
             v
      Sensor Feedback
@@ -187,11 +202,11 @@ A custom waypoint workflow was used to create navigation targets directly inside
 
 <p align="center">
   <img src="IMG_0238.jpeg" width="850"
-       alt="Navis ASV with Gazebo Waypoint Clicker">
+       alt="NAVIS ASV with Gazebo Waypoint Clicker">
 </p>
 
 <p align="center">
-  <em>Navis ASV in the VRX environment with the Gazebo Waypoint Clicker activated for interactive waypoint selection.</em>
+  <em>NAVIS ASV in the VRX environment with the Gazebo Waypoint Clicker activated for interactive waypoint selection.</em>
 </p>
 
 The waypoint interface allows navigation targets selected in the simulated environment to enter the ROS 2 navigation pipeline.
@@ -223,11 +238,11 @@ The autonomous navigation system uses **Line-of-Sight (LOS) guidance** to genera
 
 <p align="center">
   <img src="IMG_0239.jpeg" width="850"
-       alt="Navis ASV following a waypoint path in Gazebo">
+       alt="NAVIS ASV following a waypoint path in Gazebo">
 </p>
 
 <p align="center">
-  <em>Navis ASV following the generated waypoint path in Gazebo/VRX.</em>
+  <em>NAVIS ASV following the generated waypoint path in Gazebo/VRX.</em>
 </p>
 
 For consecutive waypoints, LOS guidance selects a target point ahead of the vessel rather than simply steering directly toward the next waypoint.
@@ -239,12 +254,10 @@ Waypoint A -------------------------------- Waypoint B
                          /
                         /
                        /
-                    Navis ASV
+                    NAVIS ASV
 ```
 
 A look-ahead distance is used to obtain smoother path-following behaviour.
-
----
 
 ## Cross-Track Error
 
@@ -285,7 +298,7 @@ Current Heading --------+
                   Rudder Command
                         |
                         v
-                     Navis ASV
+                     NAVIS ASV
 ```
 
 The control system interfaces with:
@@ -338,7 +351,7 @@ Command   Command
    +---+---+
        |
        v
-    Navis ASV
+    NAVIS ASV
 ```
 
 The joystick interface was used to test:
@@ -378,7 +391,7 @@ Hydrodynamic parameters were also configured to obtain usable surge, sway and ya
 
 # Sensor Integration
 
-The Navis ASV simulation integrates multiple sensors supporting navigation, perception and system evaluation.
+The NAVIS ASV simulation integrates multiple sensors supporting navigation, perception and system evaluation.
 
 | Sensor | Application |
 |---|---|
@@ -386,9 +399,6 @@ The Navis ASV simulation integrates multiple sensors supporting navigation, perc
 | **IMU** | Orientation, yaw and heading estimation |
 | **LiDAR** | Range sensing and obstacle perception |
 | **ZED2i Stereo Camera** | Stereo imagery and 3D perception |
-| **DVL** | Vessel velocity information |
-
----
 
 ## GPS / NavSat
 
@@ -409,8 +419,6 @@ Vessel Position
       v
 Waypoint Navigation
 ```
-
----
 
 ## IMU
 
@@ -434,11 +442,9 @@ Yaw / Heading
 GNC Pipeline
 ```
 
----
-
 ## LiDAR
 
-A simulated LiDAR provides range measurements for obstacle perception.
+A simulated LiDAR provides range measurements for obstacle perception and collision-avoidance development.
 
 Gazebo LiDAR data is bridged into ROS 2 and represented using:
 
@@ -468,7 +474,7 @@ ROS 2 Processing
 
 # Stereo Vision & 3D Point Cloud
 
-A simulated **ZED2i stereo camera** was integrated into the Navis ASV sensor stack.
+A simulated **ZED2i stereo camera** was integrated into the NAVIS ASV sensor stack.
 
 The stereo pipeline provides:
 
@@ -516,20 +522,6 @@ RViz2 was used to inspect the simulated sensor pipeline and verify the ROS 2 per
 
 ---
 
-# DVL Integration
-
-A simulated **Doppler Velocity Log (DVL)** interface was included for vessel-velocity information.
-
-The repository contains:
-
-- Gazebo DVL plugin
-- ROS 2 DVL publisher
-- velocity-topic monitoring
-
-This extends the simulated sensing stack beyond position and orientation measurements.
-
----
-
 # ROS 2 / Gazebo Integration
 
 Guidance and control algorithms operate as ROS 2 nodes while vessel physics and sensor simulation run in Gazebo.
@@ -549,7 +541,7 @@ ROS 2 GNC / Controller
      Gazebo Relay
           |
           v
-      Navis ASV
+      NAVIS ASV
           |
           v
    Simulated Sensors
@@ -558,15 +550,15 @@ ROS 2 GNC / Controller
         ROS 2
 ```
 
-This architecture allows guidance, sensing and control components to be developed independently from the underlying simulator.
+This architecture separates guidance, sensing and control components from the underlying simulator and supports SIL development and simulation-based validation.
 
 ---
 
-# Reinforcement Learning Path Following
+# Reinforcement-Learning-Based Guidance & Navigation
 
 The internship project was extended from classical LOS-based navigation to **learning-based continuous-control experiments**.
 
-Two off-policy reinforcement-learning algorithms were investigated:
+Two off-policy reinforcement-learning algorithms with MLP policies were investigated:
 
 ### Soft Actor-Critic (SAC)
 
@@ -690,6 +682,27 @@ The comparison considered:
 
 ---
 
+# Static & Dynamic Obstacle Avoidance
+
+The autonomous-navigation framework was further extended to **collision avoidance with static and dynamic obstacles**.
+
+This stage moved the project beyond nominal path tracking toward navigation in environments where the controller must balance:
+
+- waypoint/path progress
+- cross-track error
+- obstacle clearance
+- steering behaviour
+- collision avoidance
+- robustness to changing encounter geometry
+
+LiDAR-based environmental observations were incorporated into the learning-based navigation workflow for obstacle-aware control.
+
+This work established the technical foundation for subsequent research in **safety-aware multi-vessel autonomous navigation**.
+
+### [View related multi-vessel safety research →](https://github.com/Padma1320/ASV-Collision-Avoidance)
+
+---
+
 # Main ROS 2 Nodes
 
 The `asv_control` package contains nodes covering navigation, sensing, control, visualization and debugging.
@@ -706,7 +719,6 @@ path_publisher
 gazebo_path_trail
 gazebo_click_waypoint_node
 adaptive_los_pid_follower
-dvl_publisher
 nomoto_gz_pose_sim
 lidar_debug_node
 sensor_sync_logger
@@ -723,7 +735,6 @@ The workspace contains several custom packages supporting the simulated ASV plat
 ```text
 src/
 ├── asv_control/
-├── asv_dvl_plugin/
 ├── asv_line_trail_cpp/
 ├── asv_trail_plugin/
 ├── gps_waypoint_gui_bridge/
@@ -738,10 +749,6 @@ src/
 ### `asv_control`
 
 Main ROS 2 package containing navigation, control and sensor-processing nodes.
-
-### `asv_dvl_plugin`
-
-Gazebo plugin supporting simulated DVL measurements.
 
 ### `gps_waypoint_gui_bridge`
 
@@ -772,7 +779,6 @@ Autonomous-surface-vehicle-in-VRX-internship-/
 │
 ├── src/
 │   ├── asv_control/
-│   ├── asv_dvl_plugin/
 │   ├── asv_line_trail_cpp/
 │   ├── asv_trail_plugin/
 │   ├── gps_waypoint_gui_bridge/
@@ -883,12 +889,6 @@ ros2 run asv_control path_publisher
 ros2 run asv_control adaptive_los_pid_follower
 ```
 
-### DVL
-
-```bash
-ros2 run asv_control dvl_publisher
-```
-
 ### LiDAR Debugging
 
 ```bash
@@ -909,6 +909,10 @@ ros2 run asv_control lidar_debug_node
 - ROS–Gazebo interfaces
 - Custom Gazebo plugins
 - Autonomous Surface Vehicles
+- Digital Twin Simulation
+- Physics-Based Simulation
+- Software-in-the-Loop (SIL)
+- Simulation-Based Verification & Validation (V&V)
 
 ## Guidance, Navigation & Control (GNC)
 
@@ -934,7 +938,6 @@ ros2 run asv_control lidar_debug_node
 - ZED2i stereo camera
 - Stereo disparity
 - PointCloud2
-- DVL
 - Sensor synchronization
 - Sensor logging
 
@@ -944,6 +947,7 @@ ros2 run asv_control lidar_debug_node
 - Gymnasium
 - Soft Actor-Critic (SAC)
 - Twin Delayed DDPG (TD3)
+- MLP policies
 - Continuous control
 - Observation/action design
 - Reward design
@@ -952,6 +956,8 @@ ros2 run asv_control lidar_debug_node
 - Multi-path evaluation
 - Disturbance testing
 - Sensor-noise testing
+- Static obstacle avoidance
+- Dynamic obstacle avoidance
 
 ## ROS 2 Development
 
@@ -991,10 +997,10 @@ ros2 run asv_control lidar_debug_node
 
 # Internship Scope
 
-This repository represents the **engineering development and reinforcement-learning path-following work carried out around the Navis ASV simulation platform during the internship**.
+This repository represents the **engineering development, classical GNC, perception, reinforcement-learning navigation and collision-avoidance work carried out around the NAVIS ASV simulation platform during the internship**.
 
 ```text
-Navis ASV / VRX Integration
+NAVIS ASV / VRX Integration
             |
             v
 ROS 2 ↔ Gazebo Communication
@@ -1009,49 +1015,44 @@ GPS + IMU Navigation
 Waypoint Interface
             |
             v
-Guidance, Navigation & Control
-            |
-            v
-LOS Path Following
+Classical GNC / LOS Path Following
             |
             v
 LiDAR + Stereo Perception
             |
             v
-RViz2 Visualization
+SAC / TD3 RL Navigation
             |
             v
-SAC / TD3 Path Following
+Static + Dynamic Obstacle Avoidance
 ```
 
-The project established the simulation, sensing and GNC foundation that was subsequently extended into a separate collision-avoidance research project.
+The project established the simulation, sensing, GNC and obstacle-aware navigation foundation that was subsequently extended into research on safety-aware multi-vessel autonomous navigation.
 
 ---
 
-# Subsequent Research
+# Related Research
 
-Following the internship-stage work, the autonomous-navigation framework was extended toward:
+Building on the autonomous-navigation and collision-avoidance work developed during the ASV internship, subsequent research investigates **safety-aware multi-vessel navigation** using recurrent reinforcement learning and predictive safety intervention.
 
-- recurrent PPO
-- recurrent steering and speed policies
+The research framework includes:
+
+- recurrent PPO steering and speed policies
 - variable-speed navigation
-- dynamic obstacle avoidance
-- multi-vessel encounters
+- multi-vessel encounter scenarios
 - joint residual reinforcement learning
 - CPA / TCPA reasoning
-- COLREG-inspired scenarios
-- predictive safety filtering
+- COLREGS-aware navigation
+- receding-horizon predictive safety filtering
 - progress-aware safe-action selection
 - robustness evaluation
 - component-ablation studies
 
-This later research is maintained separately:
-
-### [ASV Collision Avoidance — Research Repository](https://github.com/Padma1320/ASV-Collision-Avoidance)
+### [Safety-Aware Autonomous Surface Vessel Navigation — Research Repository](https://github.com/Padma1320/ASV-Collision-Avoidance)
 
 **Research status: Under Review — IEEE ICRA 2027 · Extended work in progress**
 
-Keeping the repositories separate distinguishes the original **internship engineering, GNC and SAC/TD3 experimentation** from the subsequent **research contribution**.
+The internship and research repositories are kept separate to distinguish the original **engineering, GNC, SAC/TD3 and obstacle-avoidance development** from the subsequent **multi-vessel safety research**.
 
 ---
 
@@ -1059,14 +1060,6 @@ Keeping the repositories separate distinguishes the original **internship engine
 
 This work was developed during an engineering internship at **Seaconvoy Systems Engineering Pvt. Ltd.**
 
-The internship involved configuring and validating an existing Seaconvoy-developed ASV model in Gazebo, establishing the simulation and ROS 2 framework, and developing navigation, sensing, control and reinforcement-learning experiments around the simulated Navis ASV platform.
+The internship involved configuring and validating Seaconvoy's existing NAVIS ASV model in Gazebo/VRX, establishing the ROS 2 simulation framework, and developing navigation, sensing, control, reinforcement-learning and collision-avoidance experiments around the simulated vessel platform.
 
 ---
-
-# Author
-
-**Padma Muthu Lakshmanan**  
-B.Tech — Instrumentation & Control Engineering  
-National Institute of Technology, Tiruchirappalli
-
-[GitHub](https://github.com/Padma1320)
